@@ -2,25 +2,69 @@
 [ORG 500h]                       ; Set origin to 0x0500, where bootloader loads the kernel
 
 start:
-    mov ax, 0x03                 ; Set AX to 0x03 (BIOS video mode: 80x25 text mode)
+    mov ax, 0x12                 ; Set AX to 0x12 (BIOS video mode: 640x480, 16 colors)
     int 0x10                     ; Call BIOS interrupt 0x10 to set video mode
     mov si, hello_msg            ; Load address of hello message into SI
-    call print_string            ; Call print_string to display welcome message
+    call print_string_green      ; Call print_string to display welcome message
     call shell                   ; Call shell to start command-line interface
 
 hang:
     jmp hang                     ; Infinite loop to halt execution
 
-print_string:
-    mov ah, 0x0E                 ; Set AH to 0x0E (BIOS teletype output function)
+; Function to print a null-terminated string in green on black background
+print_string_green:
+    mov ah, 0x0E        ; BIOS teletype function (print character and advance cursor)
+    mov bh, 0x00        ; Set display page to 0 (default video page)
+    mov bl, 0x0A        ; Set color attribute: light green (0x0A) foreground, black background
 .print_char:
-    lodsb                        ; Load byte from [SI] into AL and increment SI
-    cmp al, 0                    ; Compare AL with 0 (check for null terminator)
-    je .done                     ; If null, jump to .done to return
-    int 0x10                     ; Call BIOS interrupt 0x10 to print character in AL
-    jmp .print_char              ; Loop back to print next character
+    lodsb               ; Load next character from DS:SI into AL, increment SI
+    cmp al, 0           ; Check if character is null (end of string)
+    je .done            ; If null, jump to .done to exit
+    int 0x10            ; Call BIOS interrupt 0x10 to print character in AL with color in BL
+    jmp .print_char     ; Loop to print next character
 .done:
-    ret                          ; Return from print_string function
+    ret                 ; Return to caller
+    
+; Function to print a null-terminated string in cyan on black background
+print_string_cyan:
+    mov ah, 0x0E        ; BIOS teletype function (print character and advance cursor)
+    mov bh, 0x00        ; Set display page to 0 (default video page)
+    mov bl, 0x0B        ; Set color attribute: light cyan (0x0B) foreground, black background
+.print_char:
+    lodsb               ; Load next character from DS:SI into AL, increment SI
+    cmp al, 0           ; Check if character is null (end of string)
+    je .done            ; If null, jump to .done to exit
+    int 0x10            ; Call BIOS interrupt 0x10 to print character in AL with color in BL
+    jmp .print_char     ; Loop to print next character
+.done:
+    ret                 ; Return to caller
+
+print_string:           ; Define the label for the print_string function
+    mov ah, 0x0E        ; Set AH to 0x0E (BIOS teletype output function)
+    mov bh, 0x00        ; Set BH to 0x00 (display page 0)
+    mov bl, 0x0F        ; Set BL to 0x0F (white text on black background)
+.print_char:            ; Label for the character printing loop
+    lodsb               ; Load byte from DS:SI into AL, increment SI
+    cmp al, 0           ; Compare AL with 0 (check for null terminator)
+    je .done            ; If AL is 0, jump to .done (end of string)
+    int 0x10            ; Call BIOS interrupt 0x10 to print character in AL
+    jmp .print_char     ; Jump back to .print_char to process next character
+.done:                  ; Label for the end of the function
+    ret                 ; Return to caller
+    
+; Function to print a null-terminated string in red on black background
+print_string_red:
+    mov ah, 0x0E        ; BIOS teletype function (print character and advance cursor)
+    mov bh, 0x00        ; Set display page to 0 (default video page)
+    mov bl, 0x055FC     ; Set color attribute: red (0x04) foreground, black background
+.print_char:
+    lodsb               ; Load next character from DS:SI into AL, increment SI
+    cmp al, 0           ; Check if character is null (end of string)
+    je .done            ; If null, jump to .done to exit
+    int 0x10            ; Call BIOS interrupt 0x10 to print character in AL with color in BL
+    jmp .print_char     ; Loop to print next character
+.done:
+    ret                 ; Return to caller
 
 shell:
     mov si, prompt               ; Load address of prompt string into SI
@@ -125,14 +169,14 @@ do_cls:
 
 unknown_command:
     mov si, unknown_msg          ; Load address of unknown command message into SI
-    call print_string            ; Call print_string to display error message
+    call print_string_red        ; Call print_string to display error message
     call print_newline           ; Call print_newline to add a newline
     ret                          ; Return from unknown_command function
 
 clear_screen:
-    mov ax, 0x03                 ; Set AX to 0x03 (BIOS video mode: 80x25 text mode)
+    mov ax, 0x12                 ; Set AX to 0x12 (BIOS video mode: 640x480, 16 colors)
     int 0x10                     ; Call BIOS interrupt 0x10 to clear screen
-    ret                          ; Return from clear_screen function
+    ret                          ; Return from clear_screen function                    
 
 print_date:
     mov si, date_msg             ; Load address of date message into SI

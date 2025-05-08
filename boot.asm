@@ -6,7 +6,7 @@ start:
     xor ax, ax                   ; Clear AX register by XORing it with itself
     mov ds, ax                   ; Set data segment (DS) to 0
     mov es, ax                   ; Set extra segment (ES) to 0
-    mov ax, 0x03                 ; Set AX to 0x03 (BIOS video mode: 80x25 text mode)
+    mov ax, 0x12                 ; Set AX to 0x12 (BIOS video mode: 640x480, 16 colors)
     int 0x10                     ; Call BIOS interrupt 0x10 to set video mode
 
     ;; reading sectors from disk

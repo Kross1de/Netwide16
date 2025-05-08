@@ -2,7 +2,7 @@
 [ORG 800h]
 
 start:
-    mov ax, 0x03
+    mov ax, 0x12
     int 0x10
 
     mov si, hello
